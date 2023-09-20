@@ -1,2 +1,0 @@
-APIKEY = "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"
-CURL = "boXf3Vajq0ZlJgUWfmiegw"
