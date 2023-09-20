@@ -9,6 +9,9 @@ def get_website_content(url: str):
     
     from requests import get, exceptions
     from bs4 import BeautifulSoup
+
+    if not url.startswith("https://"):
+        url = "https://" + url
     
     try:
         # Send an HTTP GET request to the URL

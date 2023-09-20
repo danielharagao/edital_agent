@@ -2,17 +2,9 @@ from langchain.agents import initialize_agent, Tool, AgentType
 
 from tools import google_search_2, get_website_content
 
-import env
-import os
-
-os.environ["OPENAI_API_KEY"] = env.APIKEY
-os.environ["CURL"] = env.CURL
-os.environ["SERPAPI_API_KEY"] = env.SERPAPI
-
 def lookup(requisito: str) -> str:
 
     from langchain.chat_models import ChatOpenAI
-    from langchain.chains import LLMChain
     from langchain import PromptTemplate
     llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-16k")
 
@@ -48,10 +40,7 @@ def lookup(requisito: str) -> str:
     summary_template = """
     Voce é um Agente autonomo que presta suporte para o time do Instituto Eldorado, seu papel é encontrar na internet oportunidades
     de negocio para o Instituto Eldorado.
-    Para isso, dado o tipo de edital {requisito} Eu quero que você encontre e me traga o edital com as maiores chances de sucesso para o Instituto,
-    que é o maior instituto de P&D do Brasil.
-    Sua resposta deve conter informações sobre o projeto, links úteis e informações para o Instituto poder entrar na concorrencia
-    É importante que os editais ainda possam receber empresas, ou seja, devem ser recentes.
+    Para isso, dado o tipo de edital {requisito} Eu quero que você encontre e me traga uma lista de editais com grandes chances de sucesso para o Instituto Eldorado    
     Hoje é dia {today}
     """
 
