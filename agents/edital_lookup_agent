@@ -1,0 +1,71 @@
+from langchain.agents import initialize_agent, Tool, AgentType
+
+from tools.tools import get_profile_url, google_search, get_website_content
+
+import env
+import os
+
+os.environ["OPENAI_API_KEY"] = env.APIKEY
+os.environ["CURL"] = env.CURL
+os.environ["SERPAPI_API_KEY"] = env.SERPAPI
+
+def lookup(requisito: str) -> str:
+
+    from langchain.chat_models import ChatOpenAI
+    from langchain.chains import LLMChain
+    from langchain import PromptTemplate
+    llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-16k")
+
+    from datetime import datetime
+
+    # Get the current date and time
+    current_datetime = datetime.now()
+
+    # Extract the date part (today's date) from the datetime object
+    today_date = current_datetime.date()
+
+    tools_for_agent =[
+        Tool(
+            name="Crawl Google 4 Linkedin page", 
+            func=get_profile_url,
+            description="util para quando você precisa encontrar perfis do Linkedin",
+        ),
+        Tool(
+            name="Crawl Google 4 edital page", 
+            func=google_search,
+            description="util para quando você precisa encontrar editais no Google",
+        ),
+        Tool(
+            name="Checkout a Website", 
+            func=get_website_content,
+            description="usefull for when you need to see whats in a website",
+        )
+        
+    ]
+    
+    agent = initialize_agent(
+        tools=tools_for_agent, 
+        llm=llm,
+        agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, 
+        verbose=True
+        )
+
+    summary_template = """
+    Voce é um Agente autonomo que presta suporte para o time do Instituto Eldorado, seu papel é encontrar na internet oportunidades
+    de negocio para o Instituto Eldorado.
+    Para isso, dado o tipo de edital {requisito} Eu quero que você encontre e me traga o edital com as maiores chances de sucesso para o Instituto,
+    que é o maior instituto de P&D do Brasil.
+    Sua resposta deve conter informações sobre o projeto, links úteis e informações para o Instituto poder entrar na concorrencia
+    É importante que os editais ainda possam receber empresas, ou seja, devem ser recentes.
+    Hoje é dia {today}
+    """
+
+    prompt_template = PromptTemplate(
+        input_variables=["requisito", "today"], 
+        template=summary_template,
+    )
+
+    linkedin_profile_url = agent.run(
+        prompt_template.format_prompt(requisito=requisito, today=today_date))
+
+    return linkedin_profile_url

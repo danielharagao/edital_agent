@@ -1,0 +1,224 @@
+import requests
+import json
+import re
+import os
+from bs4 import BeautifulSoup
+
+def google_search(busca: str):
+    """Pesquisa no google a partir de uma URL(string)"""
+
+    import requests
+
+    # Define the URL
+    url = f"https://serpapi.com/search.json?engine=google&q="+busca+"&api_key=6dfa2ac9678142c5b207577d0abdaf0f59f2cda6d6244352aeede0b3b64b4348"
+
+    # Make the GET request
+    response = requests.get(url)
+
+    # Check if the request was successful (status code 200)
+    if response.status_code == 200:
+        # Parse and print the JSON response
+        data = response.json()["organic_results"]
+    else:
+        print(f"Request failed with status code {response.status_code}")
+
+    return data
+
+def get_website_content(url: str):
+
+    """Scrape a website content"""
+    
+    from requests import get, exceptions
+    from bs4 import BeautifulSoup
+    
+    try:
+        # Send an HTTP GET request to the URL
+        response = get(url)
+        
+        # Check if the request was successful (status code 200)
+        if response.status_code == 200:
+            # Get the HTML content
+            html_content = response.text
+            
+            # Parse the HTML content with BeautifulSoup
+            soup = BeautifulSoup(html_content, 'html.parser')
+            
+            # Find and remove all script and style tags and their contents
+            for script in soup(['script', 'style']):
+                script.extract()
+            
+            # Get the text content of the remaining elements
+            text_content = soup.get_text()
+            
+            # Remove extra whitespaces and line breaks
+            #cleaned_content = re.sub(r'\s+', ' ', text_content).strip()
+            
+            if url[-4:] == ".pdf":
+                text_content = extract_text_from_pdf(text_content)
+
+            cleaned_content = re.sub(r'\s+', ' ', text_content).strip()
+
+            return cleaned_content
+        
+        else:
+            # If the request was not successful, raise an exception
+            response.raise_for_status()
+    
+    except exceptions.RequestException as e:
+        # Handle exceptions such as network errors or invalid URLs
+        print(f"An error occurred: {e}")
+    
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    
+    return None
+
+def extract_text_from_pdf(pdf_content):
+    
+    import PyPDF2
+
+    try:
+        # Create a PDF object from the provided content
+        pdf = PyPDF2.PdfReader(pdf_content)
+        
+        # Initialize a variable to store extracted text
+        extracted_text = ""
+        
+        # Iterate through each page and extract text
+        for page_num in range(pdf.getNumPages()):
+            page = pdf.getPage(page_num)
+            extracted_text += page.extractText()
+        
+        return extracted_text
+    
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    
+    return None
+
+def google_search_2(query, num_results=10):
+
+    # Define the base Google search URL
+    base_url = "https://www.google.com/search"
+
+    # Set up headers with a User-Agent to mimic a web browser
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
+    }
+
+    # Set up the query parameters
+    params = {
+        "q": query,
+        "num": num_results
+    }
+
+    # Send a GET request to Google with headers
+    response = requests.get(base_url, params=params, headers=headers)
+
+    # Check if the request was successful
+    if response.status_code == 200:
+        # Parse the HTML response using BeautifulSoup
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        # Find and remove specific elements like script and style tags
+        for tag in soup(["script", "style"]):
+            tag.extract()
+
+        # Extract and clean up the text content
+        text_content = soup.get_text()
+        cleaned_text = re.sub(r'\s+', ' ', text_content).strip()
+
+        return cleaned_text
+    else:
+        # Request was not successful
+        return json.dumps({"error": "Failed to fetch Google search results"}, indent=2)
+    
+def format_response(context: str):
+
+    from langchain import PromptTemplate
+    from langchain.chat_models import ChatOpenAI
+    from langchain.chains import LLMChain
+
+    from output_parsers import sales_intel_parser, SalesIntel
+
+    """Helps the Agent format the response in the required format"""
+
+    summary_template = """
+        Given this context: ---{context}---
+
+        I need you to format the context in the format:
+        
+        JSON format with 5 parameters:
+        1 - "summary" - information about the project such as vision, mission, and services.
+        2 - "links" - make a list of useful links (company website, CEO's LinkedIn, company LinkedIn, articles).
+        3 - "facts" - make a list of interesting facts about contexted business.
+        4 - "topics_of_interest" - Insights about the CEO of the contexted business interests
+        5 - "ice_breakers" - Think of an icebreaker message for us to approach contexted business decision-maker.
+
+        \n{format_instructions}
+    """
+    summary_prompt_template = PromptTemplate(
+    input_variables=["context"], 
+    template=summary_template,
+    partial_variables= {"format_instructions": sales_intel_parser.get_format_instructions()}
+    )
+
+    llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-16k")
+
+    chain = LLMChain(llm=llm, prompt=summary_prompt_template)
+
+
+    result=chain.run(context=context)
+    return sales_intel_parser.parse(result)
+
+def scrape_personal_linkedin_profile(linkedin_profile_url: str):
+    """scrape information from personal(not company) Linkedin profiles,
+    Manually scrape information from personal Linkedin profile
+    """
+    api_endpoint = "https://nubela.co/proxycurl/api/v2/linkedin"
+    header_dic = {"Authorization" : f'Bearer {(os.environ["CURL"])}'}
+
+    linkedin_profile_url = linkedin_profile_url.replace("//br.", "//www.")
+
+    response = requests.get(
+        api_endpoint, params={"url":linkedin_profile_url}, headers=header_dic
+    )
+
+    data = response.json()
+    data = {
+        k: v
+        for k, v in data.items()
+        if v not in ([], "", "", None)
+        and k not in ["people_also_viewed", "certifications"]
+    }
+    if data.get("groups"):
+        for group_dict in data.get("groups"):
+            group_dict.pop("profile_pic_url")
+
+    return data
+
+def scrape_company_linkedin_profile(linkedin_profile_url: str):
+    """scrape information from company Linkedin,
+    this will NOT open linkedin from person, just from company
+    """
+    api_endpoint = "https://nubela.co/proxycurl/api/linkedin/company"
+    header_dic = {"Authorization" : f'Bearer {(os.environ["CURL"])}'}
+
+    linkedin_profile_url = linkedin_profile_url.replace("//br.", "//www.")
+
+    response = requests.get(
+        api_endpoint, params={"url":linkedin_profile_url}, headers=header_dic
+    )
+
+    data = response.json()
+    data = {
+        k: v
+        for k, v in data.items()
+        if v not in ([], "", "", None)
+        and k not in ["people_also_viewed", "certifications"]
+    }
+    if data.get("groups"):
+        for group_dict in data.get("groups"):
+            group_dict.pop("profile_pic_url")
+
+    return data
