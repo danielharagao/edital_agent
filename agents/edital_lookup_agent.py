@@ -1,6 +1,6 @@
 from langchain.agents import initialize_agent, Tool, AgentType
 
-from tools import google_search_2, get_website_content
+from tools.tools import google_search_2, get_website_content
 
 def lookup(requisito: str) -> str:
 
@@ -40,7 +40,8 @@ def lookup(requisito: str) -> str:
     summary_template = """
     Voce é um Agente autonomo que presta suporte para o time do Instituto Eldorado, seu papel é encontrar na internet oportunidades
     de negocio para o Instituto Eldorado.
-    Para isso, dado o tipo de edital {requisito} Eu quero que você encontre e me traga uma lista de editais com grandes chances de sucesso para o Instituto Eldorado    
+    Para isso, dado o tipo de edital {requisito} Eu quero que você encontre e me traga um edital com grandes chances de sucesso para o Instituto Eldorado   
+    Voce precisa para isso pesquisar no google, identificar links potenciais, visitar os links, assim q vc encontrar um edital bom você pode retorná-lo 
     Hoje é dia {today}
     """
 

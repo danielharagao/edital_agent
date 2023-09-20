@@ -1,4 +1,4 @@
-from edital_lookup_agent import lookup as edital_lookup_agent
+from agents.edital_lookup_agent import lookup as edital_lookup_agent
 
 import os
 import env
