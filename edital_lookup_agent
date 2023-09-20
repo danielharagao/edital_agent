@@ -1,6 +1,6 @@
 from langchain.agents import initialize_agent, Tool, AgentType
 
-from tools.tools import get_profile_url, google_search, get_website_content
+from tools import google_search_2, get_website_content
 
 import env
 import os
@@ -26,14 +26,9 @@ def lookup(requisito: str) -> str:
 
     tools_for_agent =[
         Tool(
-            name="Crawl Google 4 Linkedin page", 
-            func=get_profile_url,
-            description="util para quando você precisa encontrar perfis do Linkedin",
-        ),
-        Tool(
             name="Crawl Google 4 edital page", 
-            func=google_search,
-            description="util para quando você precisa encontrar editais no Google",
+            func=google_search_2,
+            description="usefull for when you need to search on the web",
         ),
         Tool(
             name="Checkout a Website", 

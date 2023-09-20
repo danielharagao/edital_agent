@@ -1,7 +1,7 @@
-from agents.edital_lookup_agent import lookup as edital_lookup_agent
+from edital_lookup_agent import lookup as edital_lookup_agent
 
 import os
-import edital_agent.env as env
+import env
 
 os.environ["OPENAI_API_KEY"] = env.APIKEY
 os.environ["CURL"] = env.CURL
