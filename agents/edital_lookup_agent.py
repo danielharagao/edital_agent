@@ -6,7 +6,7 @@ def lookup(requisito: str) -> str:
 
     from langchain.chat_models import ChatOpenAI
     from langchain import PromptTemplate
-    llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-16k")
+    llm = ChatOpenAI(temperature=0, model_name="gpt-4")
 
     from datetime import datetime
 
@@ -18,14 +18,14 @@ def lookup(requisito: str) -> str:
 
     tools_for_agent =[
         Tool(
-            name="Crawl Google 4 edital page", 
+            name="Search on Google", 
             func=google_search_2,
             description="usefull for when you need to search on the web",
         ),
         Tool(
-            name="Checkout a Website", 
+            name="Open this Website", 
             func=get_website_content,
-            description="usefull for when you need to see whats in a website",
+            description="usefull for when you need to see whats in a website, input starts with http",
         )
         
     ]
@@ -34,23 +34,23 @@ def lookup(requisito: str) -> str:
         tools=tools_for_agent, 
         llm=llm,
         agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, 
-        verbose=True
+        verbose=True,
+        handle_parsing_errors=True
         )
 
     summary_template = """
-    Voce é um Agente autonomo que presta suporte para o time do Instituto Eldorado, seu papel é encontrar na internet oportunidades
-    de negocio para o Instituto Eldorado.
-    Para isso, dado o tipo de edital {requisito} Eu quero que você encontre e me traga um edital com grandes chances de sucesso para o Instituto Eldorado   
-    Voce precisa para isso pesquisar no google, identificar links potenciais, visitar os links, assim q vc encontrar um edital bom você pode retorná-lo 
-    Hoje é dia {today}
+    Você é especialista em técnicas para buscas no google.
+    Dado "{requisito}" encontre e me traga um edital público aberto sobre esse tema e informações úteis sobre esse edital.
+    Faça sua pesquisa em ptbt
+    vamos pensar passo a passo para garantir que encontraremos as respostas corretas.
     """
 
     prompt_template = PromptTemplate(
-        input_variables=["requisito", "today"], 
+        input_variables=["requisito"], 
         template=summary_template,
     )
 
     linkedin_profile_url = agent.run(
-        prompt_template.format_prompt(requisito=requisito, today=today_date))
+        prompt_template.format_prompt(requisito=requisito))
 
     return linkedin_profile_url

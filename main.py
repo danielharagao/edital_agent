@@ -6,7 +6,7 @@ import env
 os.environ["OPENAI_API_KEY"] = env.APIKEY
 os.environ["CURL"] = env.CURL
 
-requisito = "editais ou licitações de pesquisa e desenvolvimento de software e hardware"
+requisito = "Desenvolvimento de software"
 
 lista_de_editais = edital_lookup_agent(requisito = requisito)
 

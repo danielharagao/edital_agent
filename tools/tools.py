@@ -10,7 +10,7 @@ def get_website_content(url: str):
     from requests import get, exceptions
     from bs4 import BeautifulSoup
 
-    if not url.startswith("https://"):
+    if not url.startswith("http"):
         url = "https://" + url
     
     try:
@@ -78,7 +78,7 @@ def extract_text_from_pdf(pdf_content):
     
     return None
 
-def google_search_2(query, num_results=10):
+def google_search_2(query, num_results=30):
 
     # Define the base Google search URL
     base_url = "https://www.google.com/search"

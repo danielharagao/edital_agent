@@ -1,1 +1,5 @@
 env.py
+layers/
+__pycache__/
+agents/__pycache__/
+tools/__pycache__/

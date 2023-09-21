@@ -1,8 +1,0 @@
-langchain.agents
-requests
-json
-re
-bs4
-PyPDF2
-os
-env
