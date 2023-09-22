@@ -10,6 +10,11 @@ def get_website_content(url: str):
     from requests import get, exceptions
     from bs4 import BeautifulSoup
 
+    original_url = "camara.leg.br › licitacoes-e-contratos › licitacoes"
+
+    # Check if the ">" character is present in the original URL
+    if " > " in url: url = url.replace(" > ", "/")
+
     if not url.startswith("http"):
         url = "https://" + url
     

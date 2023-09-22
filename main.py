@@ -1,6 +1,5 @@
 from agents.edital_lookup_agent import lookup as edital_lookup_agent
 
-import os
 import env
 
 os.environ["OPENAI_API_KEY"] = env.APIKEY

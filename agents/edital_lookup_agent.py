@@ -18,12 +18,12 @@ def lookup(requisito: str) -> str:
 
     tools_for_agent =[
         Tool(
-            name="Search on Google", 
+            name="Search on Google from a string", 
             func=google_search_2,
             description="usefull for when you need to search on the web",
         ),
         Tool(
-            name="Open this Website", 
+            name="Open this Website from a url", 
             func=get_website_content,
             description="usefull for when you need to see whats in a website, input starts with http",
         )
@@ -42,7 +42,7 @@ def lookup(requisito: str) -> str:
     Você é especialista em técnicas para buscas no google.
     Dado "{requisito}" encontre e me traga um edital público aberto sobre esse tema e informações úteis sobre esse edital.
     Faça sua pesquisa em ptbt
-    vamos pensar passo a passo para garantir que encontraremos as respostas corretas.
+    Respire fundo, pense passo a passo para garantir que encontrará as respostas corretas. Vc consegue!
     """
 
     prompt_template = PromptTemplate(
